@@ -89,7 +89,7 @@ export function RegistrationForm({ closed }: { closed: boolean }) {
         <fieldset className="flex flex-col gap-3">
           <legend className="mb-1 flex items-center gap-2 text-sm font-medium text-white">
             <Gift className="size-4 text-gold" aria-hidden="true" />
-            Mes 3 idées de cadeaux
+            Pour donner quelques idées à ton secret santa, liste 3 choses que tu aimes
           </legend>
           {(['idea1', 'idea2', 'idea3'] as const).map((key, i) => (
             <Field key={key} id={key} label={`Idée n°${i + 1}`} error={errors[key]}>
