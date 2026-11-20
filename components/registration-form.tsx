@@ -66,7 +66,7 @@ export function RegistrationForm({ closed }: { closed: boolean }) {
               aria-invalid={!!errors.name}
               aria-describedby={describedBy('name')}
               className={inputClass}
-              placeholder="Camille Martin"
+              placeholder="Aurélie Martin"
             />
           </Field>
           <Field id="email" label="Email professionnel" error={errors.email}>
@@ -81,7 +81,7 @@ export function RegistrationForm({ closed }: { closed: boolean }) {
               aria-invalid={!!errors.email}
               aria-describedby={describedBy('email')}
               className={inputClass}
-              placeholder="prenom.nom@abe.fr"
+              placeholder="prenom.n@abioexpertise.com"
             />
           </Field>
         </div>
