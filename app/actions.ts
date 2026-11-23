@@ -25,8 +25,9 @@ export async function registerAction(_prev: RegisterState, formData: FormData): 
   const pin = text(formData, 'pin')
   const pinConfirm = text(formData, 'pinConfirm')
 
- 
-  }
+  const errors: Record<string, string> = {}
+  if (values.name.length < 2 || values.name.length > 80) errors.name = 'Indiquez votre nom (2 à 80 caractères).'
+  if (!EMAIL_RE.test(values.email) || values.email.length > 120) errors.email = 'Adresse email invalide.'
   if (!PIN_RE.test(pin)) errors.pin = 'Le code PIN doit contenir exactement 4 chiffres.'
   else if (pin !== pinConfirm) errors.pinConfirm = 'Les deux codes PIN ne correspondent pas.'
 
@@ -41,7 +42,7 @@ export async function registerAction(_prev: RegisterState, formData: FormData): 
       id: newId(),
       name: values.name,
       email: values.email,
-          ...hashPin(pin),
+      ...hashPin(pin),
       createdAt: new Date().toISOString(),
     })
     return 'ok' as const
@@ -75,7 +76,7 @@ export type LookupState = {
   email?: string
   result?: {
     giverName: string
-    receiver: { name: string; email: string; }
+    receiver: { name: string; email: string }
   }
 }
 
@@ -156,47 +157,4 @@ export async function cancelDrawAction(_prev: ActionState): Promise<ActionState>
   })
   revalidatePath('/admin')
   revalidatePath('/')
-  return { status: 'success', message: 'Tirage annulé. Les inscriptions sont rouvertes.', stamp: Date.now() }
-}
-
-export async function resetPinAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  if (!(await isAdmin())) return { status: 'error', message: 'Session expirée.' }
-  const participantId = text(formData, 'participantId')
-  const pin = text(formData, 'pin')
-  if (!PIN_RE.test(pin)) return { status: 'error', message: '4 chiffres requis.', stamp: Date.now() }
-
-  const found = await mutateData((data) => {
-    const participant = data.participants.find((p) => p.id === participantId)
-    if (!participant) return false
-    Object.assign(participant, hashPin(pin))
-    return true
-  })
-
-  if (!found) return { status: 'error', message: 'Participant introuvable.', stamp: Date.now() }
-  return { status: 'success', message: 'PIN réinitialisé.', stamp: Date.now() }
-}
-
-export async function deleteParticipantAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  if (!(await isAdmin())) return { status: 'error', message: 'Session expirée.', stamp: Date.now() }
-  const participantId = text(formData, 'participantId')
-
-  const result = await mutateData((data) => {
-    const index = data.participants.findIndex((p) => p.id === participantId)
-    if (index === -1) return null
-    data.participants.splice(index, 1)
-    // Removing someone breaks the gift cycle, so any existing draw must be redone.
-    const drawCancelled = !!data.draw
-    data.draw = null
-    return { drawCancelled }
-  })
-
-  if (!result) return { status: 'error', message: 'Participant introuvable.', stamp: Date.now() }
-
-  revalidatePath('/admin')
-  revalidatePath('/')
-  return {
-    status: 'success',
-    message: result.drawCancelled ? 'Inscription supprimée. Le tirage a été annulé.' : 'Inscription supprimée.',
-    stamp: Date.now(),
-  }
-}
+  return { status: 'success', message: 'Tirage annulé. Les inscriptions sont rouvertes.', stamp: Date.now
