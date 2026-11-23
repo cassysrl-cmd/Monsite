@@ -38,7 +38,6 @@ export function RegistrationForm({ closed }: { closed: boolean }) {
           <h2 id="register-title" className="font-serif text-2xl font-semibold">
             Je participe
           </h2>
-          <p className="text-sm text-muted-foreground">Quelques secondes suffisent.</p>
         </div>
       </div>
 
@@ -86,27 +85,7 @@ export function RegistrationForm({ closed }: { closed: boolean }) {
           </Field>
         </div>
 
-        <fieldset className="flex flex-col gap-3">
-          <legend className="mb-1 flex items-center gap-2 text-sm font-medium text-white">
-            <Gift className="size-4 text-gold" aria-hidden="true" />
-            Pour donner quelques idées à ton secret santa, liste 3 choses que tu aimes
-          </legend>
-          {(['idea1', 'idea2', 'idea3'] as const).map((key, i) => (
-            <Field key={key} id={key} label={`Idée n°${i + 1}`} error={errors[key]}>
-              <input
-                id={key}
-                name={key}
-                required
-                maxLength={200}
-                defaultValue={values[key]}
-                aria-invalid={!!errors[key]}
-                aria-describedby={describedBy(key)}
-                className={inputClass}
-                placeholder={['Un bon livre de cuisine', 'Des chaussettes rigolotes', 'Un thé de Noël'][i]}
-              />
-            </Field>
-          ))}
-        </fieldset>
+    
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field
