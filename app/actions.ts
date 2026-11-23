@@ -25,12 +25,7 @@ export async function registerAction(_prev: RegisterState, formData: FormData): 
   const pin = text(formData, 'pin')
   const pinConfirm = text(formData, 'pinConfirm')
 
-  const errors: Record<string, string> = {}
-  if (values.name.length < 2 || values.name.length > 80) errors.name = 'Indiquez votre nom (2 à 80 caractères).'
-  if (!EMAIL_RE.test(values.email) || values.email.length > 120) errors.email = 'Adresse email invalide.'
-  for (const key of ['idea1', 'idea2', 'idea3'] as const) {
-    if (!values[key]) errors[key] = 'Cette idée est requise.'
-    else if (values[key].length > 200) errors[key] = '200 caractères maximum.'
+ 
   }
   if (!PIN_RE.test(pin)) errors.pin = 'Le code PIN doit contenir exactement 4 chiffres.'
   else if (pin !== pinConfirm) errors.pinConfirm = 'Les deux codes PIN ne correspondent pas.'
@@ -80,7 +75,7 @@ export type LookupState = {
   email?: string
   result?: {
     giverName: string
-    receiver: { name: string; email: string; ideas: string[] }
+    receiver: { name: string; email: string; }
   }
 }
 
@@ -114,7 +109,7 @@ export async function lookupAction(_prev: LookupState, formData: FormData): Prom
     email,
     result: {
       giverName: participant.name,
-      receiver: { name: receiver.name, email: receiver.email, ideas: receiver.ideas },
+      receiver: { name: receiver.name, email: receiver.email },
     },
   }
 }
