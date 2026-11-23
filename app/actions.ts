@@ -21,9 +21,6 @@ export async function registerAction(_prev: RegisterState, formData: FormData): 
   const values = {
     name: text(formData, 'name'),
     email: text(formData, 'email').toLowerCase(),
-    idea1: text(formData, 'idea1'),
-    idea2: text(formData, 'idea2'),
-    idea3: text(formData, 'idea3'),
   }
   const pin = text(formData, 'pin')
   const pinConfirm = text(formData, 'pinConfirm')
@@ -49,8 +46,7 @@ export async function registerAction(_prev: RegisterState, formData: FormData): 
       id: newId(),
       name: values.name,
       email: values.email,
-      ideas: [values.idea1, values.idea2, values.idea3],
-      ...hashPin(pin),
+          ...hashPin(pin),
       createdAt: new Date().toISOString(),
     })
     return 'ok' as const
