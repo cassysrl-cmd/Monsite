@@ -6,11 +6,6 @@ import type { Draw, Participant } from '@/lib/store'
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' })
 
-function IdeasList({ ideas }: { ideas: string[] }) {
-  return (
-    <ol className="list-decimal space-y-0.5 pl-4 text-xs text-white/75 marker:text-gold">
-      {ideas.map((idea, i) => (
-        <li key={i}>{idea}</li>
       ))}
     </ol>
   )
@@ -90,7 +85,6 @@ export function AdminDashboard({ participants, draw }: { participants: Participa
                   <tr key={p.id} className="align-top">
                     <td className="px-6 py-4 font-medium sm:px-8">{p.name}</td>
                     <td className="px-4 py-4 text-white/75">{p.email}</td>
-                    <td className="px-4 py-4"><IdeasList ideas={p.ideas} /></td>
                     <td className="px-4 py-4"><ResetPinForm participantId={p.id} participantName={p.name} /></td>
                     <td className="px-6 py-4 text-right sm:px-8">
                       <DeleteParticipantButton participantId={p.id} participantName={p.name} hasDraw={!!draw} />
@@ -145,8 +139,7 @@ export function AdminDashboard({ participants, draw }: { participants: Participa
                           <p className="text-xs text-destructive">Non attribué (inscrit après le tirage)</p>
                         )}
                       </td>
-                      <td className="px-6 py-4 sm:px-8">{receiver && <IdeasList ideas={receiver.ideas} />}</td>
-                    </tr>
+                     </tr>
                   )
                 })}
               </tbody>
