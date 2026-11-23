@@ -6,7 +6,6 @@ export type Participant = {
   id: string
   name: string
   email: string
-  ideas: string[]
   pinHash: string
   pinSalt: string
   createdAt: string
