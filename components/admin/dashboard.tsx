@@ -6,11 +6,6 @@ import type { Draw, Participant } from '@/lib/store'
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' })
 
-      ))}
-    </ol>
-  )
-}
-
 export function AdminDashboard({ participants, draw }: { participants: Participant[]; draw: Draw | null }) {
   const byId = new Map(participants.map((p) => [p.id, p]))
 
@@ -70,12 +65,11 @@ export function AdminDashboard({ participants, draw }: { participants: Participa
           <p className="px-6 pb-8 text-sm text-white/60 sm:px-8">Aucun inscrit pour le moment.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[840px] text-left text-sm">
+            <table className="w-full min-w-[680px] text-left text-sm">
               <thead className="border-y border-white/10 bg-white/5 text-xs uppercase tracking-wider text-white/60">
                 <tr>
                   <th scope="col" className="px-6 py-3 font-medium sm:px-8">Nom</th>
                   <th scope="col" className="px-4 py-3 font-medium">Email</th>
-                  <th scope="col" className="px-4 py-3 font-medium">Idées</th>
                   <th scope="col" className="px-4 py-3 font-medium">Code PIN</th>
                   <th scope="col" className="px-6 py-3 sm:px-8"><span className="sr-only">Actions</span></th>
                 </tr>
@@ -108,13 +102,12 @@ export function AdminDashboard({ participants, draw }: { participants: Participa
             </p>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-left text-sm">
+            <table className="w-full min-w-[600px] text-left text-sm">
               <thead className="border-y border-white/10 bg-white/5 text-xs uppercase tracking-wider text-white/60">
                 <tr>
                   <th scope="col" className="px-6 py-3 font-medium sm:px-8">Offre</th>
                   <th scope="col" className="px-2 py-3"><span className="sr-only">à</span></th>
-                  <th scope="col" className="px-4 py-3 font-medium">Reçoit</th>
-                  <th scope="col" className="px-6 py-3 font-medium sm:px-8">Idées du destinataire</th>
+                  <th scope="col" className="px-4 py-3 font-medium sm:px-8">Reçoit</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
@@ -129,7 +122,7 @@ export function AdminDashboard({ participants, draw }: { participants: Participa
                       <td className="px-2 py-4 text-ember">
                         <ArrowRight className="size-4" aria-hidden="true" />
                       </td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-4 sm:px-8">
                         {receiver ? (
                           <>
                             <p className="font-medium text-gold">{receiver.name}</p>
@@ -139,7 +132,7 @@ export function AdminDashboard({ participants, draw }: { participants: Participa
                           <p className="text-xs text-destructive">Non attribué (inscrit après le tirage)</p>
                         )}
                       </td>
-                     </tr>
+                    </tr>
                   )
                 })}
               </tbody>
