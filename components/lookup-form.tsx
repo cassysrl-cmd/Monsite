@@ -23,18 +23,6 @@ export function LookupForm() {
           {receiver.email}
         </p>
 
-        <div className="mx-auto mt-8 max-w-md text-left">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Ses 3 idées de cadeaux</h3>
-          <ul className="flex flex-col gap-3">
-            {receiver.ideas.map((idea, i) => (
-              <li key={i} className="flex items-start gap-3 rounded-lg border border-white/10 bg-white/5 px-4 py-3">
-                <Gift className="mt-0.5 size-4 shrink-0 text-ember" aria-hidden="true" />
-                <span className="text-sm leading-relaxed">{idea}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
         <p className="mt-8 text-xs text-muted-foreground">Chut… gardez le secret jusqu&apos;au jour J !</p>
         <form action={() => window.location.reload()} className="mt-4">
           <button type="submit" className={secondaryButtonClass}>
