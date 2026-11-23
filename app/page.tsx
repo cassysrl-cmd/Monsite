@@ -7,8 +7,8 @@ import { getData } from '@/lib/store'
 export const dynamic = 'force-dynamic'
 
 const STEPS = [
-  { icon: TreePine, title: 'Inscrivez-vous', text: 'Votre nom, votre email et 3 choses que vous aimez.' },
-  { icon: Snowflake, title: 'Le tirage', text: "L'organisateur lance le tirage au sort." },
+  { icon: TreePine, title: 'Inscrivez-vous', text: 'Votre nom et votre email.' },
+  { icon: Snowflake, title: 'Le tirage', text: "L'organisatrice lance le tirage au sort." },
   { icon: Gift, title: 'Votre cible', text: 'Email + code PIN pour la découvrir en secret.' },
 ]
 
