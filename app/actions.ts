@@ -157,4 +157,46 @@ export async function cancelDrawAction(_prev: ActionState): Promise<ActionState>
   })
   revalidatePath('/admin')
   revalidatePath('/')
-  return { status: 'success', message: 'Tirage annulé. Les inscriptions sont rouvertes.', stamp: Date.now
+  return { status: 'success', message: 'Tirage annulé. Les inscriptions sont rouvertes.', stamp: Date.now() }
+}
+
+export async function resetPinAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  if (!(await isAdmin())) return { status: 'error', message: 'Session expirée.' }
+  const participantId = text(formData, 'participantId')
+  const pin = text(formData, 'pin')
+  if (!PIN_RE.test(pin)) return { status: 'error', message: '4 chiffres requis.', stamp: Date.now() }
+
+  const found = await mutateData((data) => {
+    const participant = data.participants.find((p) => p.id === participantId)
+    if (!participant) return false
+    Object.assign(participant, hashPin(pin))
+    return true
+  })
+
+  if (!found) return { status: 'error', message: 'Participant introuvable.', stamp: Date.now() }
+  return { status: 'success', message: 'PIN réinitialisé.', stamp: Date.now() }
+}
+
+export async function deleteParticipantAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  if (!(await isAdmin())) return { status: 'error', message: 'Session expirée.', stamp: Date.now() }
+  const participantId = text(formData, 'participantId')
+
+  const result = await mutateData((data) => {
+    const index = data.participants.findIndex((p) => p.id === participantId)
+    if (index === -1) return null
+    data.participants.splice(index, 1)
+    const drawCancelled = !!data.draw
+    data.draw = null
+    return { drawCancelled }
+  })
+
+  if (!result) return { status: 'error', message: 'Participant introuvable.', stamp: Date.now() }
+
+  revalidatePath('/admin')
+  revalidatePath('/')
+  return {
+    status: 'success',
+    message: result.drawCancelled ? 'Inscription supprimée. Le tirage a été annulé.' : 'Inscription supprimée.',
+    stamp: Date.now(),
+  }
+}
