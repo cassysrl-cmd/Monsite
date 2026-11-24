@@ -21,6 +21,8 @@ type Data = {
   draw: Draw | null
 }
 
+const STORE_KEY = 'secret-santa-abe:data'
+
 // Vercel's serverless filesystem is read-only except for /tmp.
 const DATA_FILE = process.env.VERCEL
   ? '/tmp/secret-santa-abe.json'
@@ -28,23 +30,81 @@ const DATA_FILE = process.env.VERCEL
 
 const emptyData = (): Data => ({ participants: [], draw: null })
 
+function normalizeData(parsed: unknown): Data {
+  if (!parsed || typeof parsed !== 'object') return emptyData()
+  const obj = parsed as Partial<Data>
+  return {
+    participants: Array.isArray(obj.participants) ? obj.participants : [],
+    draw: obj.draw ?? null,
+  }
+}
+
+function getRedisConfig(): { url: string; token: string } | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
+  if (!url || !token) return null
+  return { url: url.replace(/\/+$/, ''), token }
+}
+
+async function redisGet(url: string, token: string): Promise<string | null> {
+  const res = await fetch(`${url}/get/${encodeURIComponent(STORE_KEY)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  })
+  if (!res.ok) {
+    throw new Error(`Redis GET failed (${res.status})`)
+  }
+  const json = (await res.json()) as { result?: unknown }
+  if (json.result === null || json.result === undefined) return null
+  return typeof json.result === 'string' ? json.result : JSON.stringify(json.result)
+}
+
+async function redisSet(url: string, token: string, value: string): Promise<void> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(['SET', STORE_KEY, value]),
+    cache: 'no-store',
+  })
+  if (!res.ok) {
+    throw new Error(`Redis SET failed (${res.status})`)
+  }
+}
+
 async function readData(): Promise<Data> {
+  const redis = getRedisConfig()
+  if (redis) {
+    const raw = await redisGet(redis.url, redis.token)
+    if (!raw) return emptyData()
+    try {
+      return normalizeData(JSON.parse(raw))
+    } catch {
+      return emptyData()
+    }
+  }
+
   try {
     const raw = await fs.readFile(DATA_FILE, 'utf8')
-    const parsed = JSON.parse(raw) as Partial<Data>
-    return {
-      participants: parsed.participants ?? [],
-      draw: parsed.draw ?? null,
-    }
+    return normalizeData(JSON.parse(raw))
   } catch {
     return emptyData()
   }
 }
 
-async function writeData(data: Data) {
+async function writeData(data: Data): Promise<void> {
+  const serialized = JSON.stringify(data, null, 2)
+  const redis = getRedisConfig()
+  if (redis) {
+    await redisSet(redis.url, redis.token, serialized)
+    return
+  }
+
   await fs.mkdir(path.dirname(DATA_FILE), { recursive: true })
   const tmp = `${DATA_FILE}.${randomUUID()}.tmp`
-  await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf8')
+  await fs.writeFile(tmp, serialized, 'utf8')
   await fs.rename(tmp, DATA_FILE)
 }
 
