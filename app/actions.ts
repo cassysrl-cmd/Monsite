@@ -19,6 +19,7 @@ export type RegisterState = {
 }
 
 export async function registerAction(_prev: RegisterState, formData: FormData): Promise<RegisterState> {
+  // Honeypot anti-bot optionnel si un champ caché "website" est présent dans le formulaire
   if (text(formData, 'website') !== '') {
     return { status: 'error', message: 'Inscription refusée.', stamp: Date.now() }
   }
@@ -189,7 +190,49 @@ export async function resetPinAction(_prev: ActionState, formData: FormData): Pr
   return { status: 'success', message: 'PIN réinitialisé.', stamp: Date.now() }
 }
 
+export async function deleteParticipantAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  if (!(await isAdmin())) return { status: 'error', message: 'Session expirée.', stamp: Date.now() }
+  const participantId = text(formData, 'participantId')
+
+  const result = await mutateData((data) => {
+    const index = data.participants.findIndex((p) => p.id === participantId)
+    if (index === -1) return null
+    data.participants.splice(index, 1)
+    const drawCancelled = !!data.draw
+    data.draw = null
+    return { drawCancelled }
   })
   if (!result) return { status: 'error', message: 'Participant introuvable.', stamp: Date.now() }
 
   revalidatePath('/admin')
+  revalidatePath('/')
+  return {
+    status: 'success',
+    message: result.drawCancelled ? 'Inscription supprimée. Le tirage a été annulé.' : 'Inscription supprimée.',
+    stamp: Date.now(),
+  }
+}
+
+export async function purgeExternalParticipantsAction(_prev: ActionState): Promise<ActionState> {
+  if (!(await isAdmin())) return { status: 'error', message: 'Session expirée.', stamp: Date.now() }
+
+  const removedCount = await mutateData((data) => {
+    const before = data.participants.length
+    data.participants = data.participants.filter((p) => p.email.toLowerCase().endsWith(ALLOWED_DOMAIN))
+    if (data.participants.length !== before) {
+      data.draw = null
+    }
+    return before - data.participants.length
+  })
+
+  revalidatePath('/admin')
+  revalidatePath('/')
+  return {
+    status: 'success',
+    message:
+      removedCount > 0
+        ? `${removedCount} inscription(s) externe(s) supprimée(s). Vos collègues sont intacts.`
+        : 'Aucune inscription externe à supprimer.',
+    stamp: Date.now(),
+  }
+}
