@@ -204,13 +204,3 @@ export async function deleteParticipantAction(_prev: ActionState, formData: Form
   if (!result) return { status: 'error', message: 'Participant introuvable.', stamp: Date.now() }
 
   revalidatePath('/admin')
-  revalidatePath('/')
-  return {
-    status: 'success',
-    message: result.drawCancelled ? 'Inscription supprimée. Le tirage a été annulé.' : 'Inscription supprimée.',
-    stamp: Date.now(),
-  }
-}
-
-export async function purgeExternalParticipantsAction(_prev: ActionState): Promise<ActionState> {
-  if (!(await isAdmin())) return { status: 'error', message: 'Session expirée.', stamp: Date.now() }
