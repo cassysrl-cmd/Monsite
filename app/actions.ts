@@ -189,17 +189,6 @@ export async function resetPinAction(_prev: ActionState, formData: FormData): Pr
   return { status: 'success', message: 'PIN réinitialisé.', stamp: Date.now() }
 }
 
-export async function deleteParticipantAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  if (!(await isAdmin())) return { status: 'error', message: 'Session expirée.', stamp: Date.now() }
-  const participantId = text(formData, 'participantId')
-
-  const result = await mutateData((data) => {
-    const index = data.participants.findIndex((p) => p.id === participantId)
-    if (index === -1) return null
-    data.participants.splice(index, 1)
-    const drawCancelled = !!data.draw
-    data.draw = null
-    return { drawCancelled }
   })
   if (!result) return { status: 'error', message: 'Participant introuvable.', stamp: Date.now() }
 
