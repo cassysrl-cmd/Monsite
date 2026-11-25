@@ -1,13 +1,55 @@
-import { ArrowRight, LogOut } from 'lucide-react'
-import { adminLogoutAction } from '@/app/actions'
+'use client'
+
+import { useActionState } from 'react'
+import { ArrowRight, LogOut, Trash2 } from 'lucide-react'
+import { adminLogoutAction, purgeExternalParticipantsAction, type ActionState } from '@/app/actions'
 import { DeleteParticipantButton, DrawControls, ResetPinForm } from '@/components/admin/admin-controls'
 import { Card, secondaryButtonClass } from '@/components/form-ui'
 import type { Draw, Participant } from '@/lib/store'
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeStyle: 'short' })
+const initialPurgeState: ActionState = { status: 'idle' }
+
+function PurgeExternalButton({ externalCount }: { externalCount: number }) {
+  const [state, formAction, isPending] = useActionState(purgeExternalParticipantsAction, initialPurgeState)
+
+  if (externalCount === 0 && state.status === 'idle') return null
+
+  return (
+    <div className="flex flex-col items-end gap-2">
+      <form
+        action={formAction}
+        onSubmit={(e) => {
+          if (
+            !window.confirm(
+              `Supprimer les ${externalCount} inscription(s) externe(s) (hors @abioexpertise.com) ?\n\nVos collègues @abioexpertise.com seront conservés.`
+            )
+          ) {
+            e.preventDefault()
+          }
+        }}
+      >
+        <button
+          type="submit"
+          disabled={isPending || externalCount === 0}
+          className="inline-flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/15 px-3.5 py-2 text-xs font-medium text-red-200 transition hover:bg-red-500/25 disabled:opacity-50"
+        >
+          <Trash2 className="size-4" aria-hidden="true" />
+          {isPending ? 'Suppression en cours...' : `Purger les ${externalCount} faux inscrits`}
+        </button>
+      </form>
+      {state.message && (
+        <p className={`text-xs ${state.status === 'error' ? 'text-red-300' : 'text-emerald-300'}`}>
+          {state.message}
+        </p>
+      )}
+    </div>
+  )
+}
 
 export function AdminDashboard({ participants, draw }: { participants: Participant[]; draw: Draw | null }) {
   const byId = new Map(participants.map((p) => [p.id, p]))
+  const externalCount = participants.filter((p) => !p.email.toLowerCase().endsWith('@abioexpertise.com')).length
 
   return (
     <div className="flex flex-col gap-8">
@@ -55,11 +97,16 @@ export function AdminDashboard({ participants, draw }: { participants: Participa
       </Card>
 
       <Card aria-labelledby="participants-title" className="!p-0">
-        <div className="p-6 pb-4 sm:p-8 sm:pb-4">
-          <h2 id="participants-title" className="font-serif text-xl font-semibold">
-            Liste des inscrits
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">Réinitialisez le code PIN d&apos;un participant ou supprimez une inscription si besoin.</p>
+        <div className="flex flex-wrap items-start justify-between gap-4 p-6 pb-4 sm:p-8 sm:pb-4">
+          <div>
+            <h2 id="participants-title" className="font-serif text-xl font-semibold">
+              Liste des inscrits
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Réinitialisez le code PIN d&apos;un participant ou supprimez une inscription si besoin.
+            </p>
+          </div>
+          <PurgeExternalButton externalCount={externalCount} />
         </div>
         {participants.length === 0 ? (
           <p className="px-6 pb-8 text-sm text-white/60 sm:px-8">Aucun inscrit pour le moment.</p>
