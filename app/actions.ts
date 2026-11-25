@@ -4,7 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { checkAdminPassword, endAdminSession, isAdmin, startAdminSession } from '@/lib/admin-auth'
 import { createDerangement, getData, hashPin, mutateData, newId, verifyPin } from '@/lib/store'
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const ALLOWED_DOMAIN = '@abioexpertise.com'
+const EMAIL_RE = /^[^\s@]+@abioexpertise\.com$/
 const PIN_RE = /^\d{4}$/
 
 const text = (formData: FormData, key: string) => String(formData.get(key) ?? '').trim()
@@ -18,6 +19,11 @@ export type RegisterState = {
 }
 
 export async function registerAction(_prev: RegisterState, formData: FormData): Promise<RegisterState> {
+  // Honeypot anti-bot optionnel si un champ caché "website" est présent dans le formulaire
+  if (text(formData, 'website') !== '') {
+    return { status: 'error', message: 'Inscription refusée.', stamp: Date.now() }
+  }
+
   const values = {
     name: text(formData, 'name'),
     email: text(formData, 'email').toLowerCase(),
@@ -26,10 +32,17 @@ export async function registerAction(_prev: RegisterState, formData: FormData): 
   const pinConfirm = text(formData, 'pinConfirm')
 
   const errors: Record<string, string> = {}
-  if (values.name.length < 2 || values.name.length > 80) errors.name = 'Indiquez votre nom (2 à 80 caractères).'
-  if (!EMAIL_RE.test(values.email) || values.email.length > 120) errors.email = 'Adresse email invalide.'
-  if (!PIN_RE.test(pin)) errors.pin = 'Le code PIN doit contenir exactement 4 chiffres.'
-  else if (pin !== pinConfirm) errors.pinConfirm = 'Les deux codes PIN ne correspondent pas.'
+  if (values.name.length < 2 || values.name.length > 80) {
+    errors.name = 'Indiquez votre nom (2 à 80 caractères).'
+  }
+  if (!EMAIL_RE.test(values.email) || values.email.length > 120) {
+    errors.email = `Utilisez votre adresse professionnelle (${ALLOWED_DOMAIN}).`
+  }
+  if (!PIN_RE.test(pin)) {
+    errors.pin = 'Le code PIN doit contenir exactement 4 chiffres.'
+  } else if (pin !== pinConfirm) {
+    errors.pinConfirm = 'Les deux codes PIN ne correspondent pas.'
+  }
 
   if (Object.keys(errors).length > 0) {
     return { status: 'error', message: 'Merci de corriger les champs indiqués.', errors, values, stamp: Date.now() }
