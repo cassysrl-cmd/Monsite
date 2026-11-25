@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { Gift, Loader2, Sparkles, Star, TreePine } from 'lucide-react'
+import { Loader2, Sparkles, Star, TreePine } from 'lucide-react'
 import { registerAction, type RegisterState } from '@/app/actions'
 import { Alert, Card, Field, inputClass, primaryButtonClass } from '@/components/form-ui'
 
@@ -53,6 +53,12 @@ export function RegistrationForm({ closed }: { closed: boolean }) {
       )}
 
       <form key={state.stamp} action={formAction} className="mt-6 flex flex-col gap-5" noValidate>
+        {/* Champ piège invisible (honeypot) pour bloquer les bots */}
+        <div className="sr-only" aria-hidden="true">
+          <label htmlFor="website">Site web</label>
+          <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+        </div>
+
         <div className="grid gap-5 sm:grid-cols-2">
           <Field id="name" label="Nom complet" error={errors.name}>
             <input
@@ -68,7 +74,7 @@ export function RegistrationForm({ closed }: { closed: boolean }) {
               placeholder="Aurélie Martin"
             />
           </Field>
-          <Field id="email" label="Email professionnel" error={errors.email}>
+          <Field id="email" label="Email professionnel" hint="Adresse en @abioexpertise.com uniquement." error={errors.email}>
             <input
               id="email"
               name="email"
@@ -78,14 +84,12 @@ export function RegistrationForm({ closed }: { closed: boolean }) {
               maxLength={120}
               defaultValue={values.email}
               aria-invalid={!!errors.email}
-              aria-describedby={describedBy('email')}
+              aria-describedby={errors.email ? 'email-error' : 'email-hint'}
               className={inputClass}
               placeholder="prenom.n@abioexpertise.com"
             />
           </Field>
         </div>
-
-    
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field
@@ -96,7 +100,9 @@ export function RegistrationForm({ closed }: { closed: boolean }) {
                 Code PIN secret (4 chiffres)
               </span>
             }
-            hint="Il vous servira à découvrir votre cible." error={errors.pin}>
+            hint="Il vous servira à découvrir votre cible."
+            error={errors.pin}
+          >
             <input
               id="pin"
               name="pin"
@@ -136,7 +142,7 @@ export function RegistrationForm({ closed }: { closed: boolean }) {
           ) : (
             <Sparkles className="size-4" aria-hidden="true" />
           )}
-          {pending ? 'Inscription…' : "Valider mon inscription"}
+          {pending ? 'Inscription…' : 'Valider mon inscription'}
         </button>
       </form>
     </Card>
